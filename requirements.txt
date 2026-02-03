@@ -1,0 +1,7 @@
+Flask
+python-dotenv
+python-whois
+dnspython
+requests
+pyinstaller
+Pillow

@@ -1,0 +1,49 @@
+# Electron
+node_modules/
+dist-electron/
+python-dist/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts
+build/
+dist/
+*.AppImage
+*.deb
+*.rpm
+*.dmg
+*.exe
+!*.spec
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+ENV/
+
+# Database
+data/*.db
+data/*.db-journal
+
+# Environment
+.env
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# System
+Thumbs.db
+ehthumbs.db
+Desktop.ini
