@@ -58,7 +58,29 @@ api_debug.log
 *~
 .DS_Store
 
-# System
+
+# Deployment Guides & Temporary Docs
+COMMANDS_TO_PUSH.md
+CORRECTED_PUSH_COMMANDS.md
+FIX_404_ERROR.md
+FLASK_ROUTING_ISSUE.md
+TRAY_TROUBLESHOOTING.md
+PUSH_ESSENTIAL_FILES.md
+PUSH_TO_GITHUB.md
+READY_TO_PUSH.md
+QUICK_START_GITHUB.md
+RELEASE_GUIDE.md
+TESTING_PHASE1.md
+MONITORING_QUICK_REFERENCE.md
+
+# Debug Scripts
+debug_routes.py
+routes_output.txt
+test_backend.bat
+test_endpoint.py
+test_dialog.js
+setup_github.bat
+push_to_github.bat
 Thumbs.db
 ehthumbs.db
 Desktop.ini
