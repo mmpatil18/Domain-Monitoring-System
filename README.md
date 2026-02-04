@@ -3,16 +3,16 @@
 **Professional domain monitoring system** - Track domain availability and get instant email alerts when domains become available.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/YOUR-GITHUB-USERNAME/domain-monitor/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-green.svg)](https://github.com/mmpatil18/Domain-Monitoring-System/releases)
 
 ---
 
 ## 📥 Download
 
-**Latest Release**: [v1.0.0](https://github.com/YOUR-GITHUB-USERNAME/domain-monitor/releases/latest)
+**Latest Release**: [v1.1.0](https://github.com/mmpatil18/Domain-Monitoring-System/releases/latest)
 
 ### Windows
-- **Installer**: [Domain-Monitoring-System-Setup-1.0.0.exe](https://github.com/YOUR-GITHUB-USERNAME/domain-monitor/releases/latest)
+- **Installer**: [Domain.Monitoring.System-Setup-1.1.0.exe](https://github.com/mmpatil18/Domain-Monitoring-System/releases/download/v1.1.0/Domain.Monitoring.System-Setup-1.1.0.exe)
 - **Requirements**: Windows 10/11 (64-bit), 4 GB RAM
 
 ---
@@ -34,8 +34,8 @@
 
 ### Installation
 
-1. **Download** the installer from [Releases](https://github.com/YOUR-GITHUB-USERNAME/domain-monitor/releases/latest)
-2. **Run** `Domain-Monitoring-System-Setup-1.0.0.exe`
+1. **Download** the installer from [Releases](https://github.com/mmpatil18/Domain-Monitoring-System/releases/latest)
+2. **Run** `Domain.Monitoring.System-Setup-1.1.0.exe`
 3. **Follow** the installation wizard
 4. **Launch** from Desktop shortcut or Start Menu
 
@@ -110,7 +110,7 @@ See [MONITORING_GUIDE.md](MONITORING_GUIDE.md) for detailed information.
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR-GITHUB-USERNAME/domain-monitor.git
+git clone https://github.com/mmpatil18/Domain-Monitoring-System.git
 cd domain-monitor
 
 # Install dependencies
@@ -211,7 +211,7 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 This application supports **automatic updates**! When a new version is released, you'll be notified and can update with one click.
 
 ### Manual Updates
-1. Download latest version from [Releases](https://github.com/YOUR-GITHUB-USERNAME/domain-monitor/releases/latest)
+1. Download latest version from [Releases](https://github.com/mmpatil18/Domain-Monitoring-System/releases/latest)
 2. Run the new installer
 3. Your data and settings will be preserved
 
@@ -220,7 +220,7 @@ This application supports **automatic updates**! When a new version is released,
 ## 📞 Support
 
 - **Documentation**: Check the docs folder
-- **Issues**: [GitHub Issues](https://github.com/YOUR-GITHUB-USERNAME/domain-monitor/issues)
+- **Issues**: [GitHub Issues](https://github.com/mmpatil18/Domain-Monitoring-System/issues)
 - **Email**: your-email@example.com
 
 ---

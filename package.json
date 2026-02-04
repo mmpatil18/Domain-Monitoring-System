@@ -28,8 +28,8 @@
     "productName": "Domain Monitoring System",
     "publish": {
       "provider": "github",
-      "owner": "YOUR-GITHUB-USERNAME",
-      "repo": "domain-monitor",
+      "owner": "mmpatil18",
+      "repo": "Domain-Monitoring-System",
       "releaseType": "release"
     },
     "directories": {
