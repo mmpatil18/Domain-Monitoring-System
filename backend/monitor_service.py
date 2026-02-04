@@ -12,9 +12,16 @@ from database import Database
 from domain_checker import DomainChecker
 from email_notifier import EmailNotifier
 
+
+# Configure logging to file AND stdout
+log_file = os.path.join(Config.DATA_DIR, 'app.log')
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file, encoding='utf-8'),
+        logging.StreamHandler(sys.stdout)
+    ]
 )
 logger = logging.getLogger(__name__)
 

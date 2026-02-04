@@ -22,7 +22,27 @@
             </div>
         </header>
 
-        
+        <!-- (Rest of body...) -->
+
+        <!-- Logs Modal -->
+        <div id="logs-modal" class="modal">
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h2>📜 System Logs</h2>
+                    <span class="close" id="close-logs">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="logs-container">
+                        <textarea id="system-logs" readonly placeholder="Waiting for logs..."></textarea>
+                    </div>
+                    <div class="log-actions">
+                        <button class="btn btn-secondary" id="refresh-logs-btn">🔄 Refresh Logs</button>
+                        <button class="btn btn-danger" id="clear-logs-btn">🗑️ Clear Logs</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- System Status -->
         <div class="status-card">
             <div class="status-item">

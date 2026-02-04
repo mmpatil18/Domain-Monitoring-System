@@ -1,0 +1,81 @@
+DOMAIN MONITORING SYSTEM - USER MANUAL
+Version 1.1.0
+
+------------------------------------------------------------
+1. INTRODUCTION
+------------------------------------------------------------
+This application monitors domain names for availability. It runs in the background and sends email alerts when a domain becomes available for purchase or if a monitored domain is lost.
+
+------------------------------------------------------------
+2. INSTALLATION STEP-BY-STEP
+------------------------------------------------------------
+1. Download the "Domain.Monitoring.System-Setup-1.1.0.exe" file.
+2. Double-click the file to run it.
+   Note: If Windows shows a "Windows protected your PC" message:
+   - Click "More info".
+   - Click "Run anyway".
+3. Follow the installation wizard.
+4. Once installed, the application will open automatically.
+
+------------------------------------------------------------
+3. FIRST-TIME SETUP
+------------------------------------------------------------
+Before you start monitoring, it is recommended to configure your email settings so you can receive alerts.
+
+A. Configure Email Alerts
+1. Open the application.
+2. Click on the "Settings" tab in the top navigation.
+3. Fill in your SMTP details:
+   - Gmail users: Use "smtp.gmail.com" (Port 587) and an App Password.
+   - Outlook/Office365: Use "smtp.office365.com" (Port 587).
+4. Click "Save Settings".
+5. Click "Test Email" to confirm it works.
+
+------------------------------------------------------------
+4. HOW TO MONITOR DOMAINS
+------------------------------------------------------------
+There are two ways to add domains to the monitor list.
+
+Method A: Add Specific Keywords
+1. Go to the "Dashboard" tab.
+2. Type a keyword (e.g., "mybrand") in the input box.
+3. Click "Add Keyword".
+   Result: The system will automatically generate valid domain names (mybrand.com, mybrand.net, etc.) and add them to the queue.
+
+Method B: Bulk Import (CSV)
+1. Prepare a CSV file with a single column of keywords.
+2. Click "Upload CSV" on the Dashboard.
+3. Select your file.
+
+------------------------------------------------------------
+5. RUNNING THE SCAN
+------------------------------------------------------------
+1. Click the "Start Scan" button on the Dashboard.
+2. The system will check the availability of all domains.
+3. Results will appear in the table below:
+   - Status "Available": You can register this domain.
+   - Status "Taken": The domain is owned by someone else.
+
+------------------------------------------------------------
+6. BACKGROUND MONITORING
+------------------------------------------------------------
+This application is designed to run 24/7 without disturbing you.
+
+- When you close the main window, the application does NOT quit.
+- It minimizes to the System Tray (bottom right corner, near the clock).
+- It will continue checking domains every 30 minutes in the background.
+
+To fully exit the application:
+1. Right-click the small icon in the System Tray.
+2. Select "Quit".
+
+------------------------------------------------------------
+7. VIEWING HISTORY AND LOGS
+------------------------------------------------------------
+- Click the "Scan History" tab to see past checks.
+- If a domain status changes (e.g., from Taken to Available), you will receive an immediate email alert.
+
+------------------------------------------------------------
+SUPPORT
+------------------------------------------------------------
+If you encounter any issues, please contact the administrator or check the logs folder in your user directory.

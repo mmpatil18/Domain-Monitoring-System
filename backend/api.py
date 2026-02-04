@@ -28,6 +28,25 @@ else:
 app = Flask(__name__, static_folder=static_folder, template_folder=template_folder, static_url_path='')
 db = Database()
 
+# Configure logging to file
+import logging
+
+# Clear any existing handlers and force reconfiguration
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+
+log_file = os.path.join(Config.DATA_DIR, 'app.log')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file, encoding='utf-8'),
+        logging.StreamHandler(sys.stdout)
+    ],
+    force=True
+)
+logger = logging.getLogger(__name__)
+
 # CORS headers for API
 @app.after_request
 def after_request(response):
@@ -220,12 +239,16 @@ def get_status():
         keywords = db.get_all_keywords()
         all_domains = db.get_available_domains(limit=10000)
         
+        # Check if email is strictly configured in DB (ignoring env vars for UI status)
+        # This ensures users see the "Enter Email" prompt until they manually save settings
+        email_configured = bool(db.get_setting('smtp_username') and db.get_setting('smtp_server'))
+        
         return jsonify({
             'success': True,
             'status': {
                 'keywords_count': len(keywords),
                 'domains_found': len(all_domains),
-                'email_configured': Config.is_email_configured()
+                'email_configured': email_configured
             }
         })
         
@@ -247,7 +270,10 @@ def trigger_scan():
         
         thread = threading.Thread(target=run_scan)
         thread.daemon = True
+        thread.daemon = True
         thread.start()
+        
+        logger.info("Manual scan triggered via API")
         
         return jsonify({
             'success': True,
@@ -373,6 +399,43 @@ def test_email():
         
     except Exception as e:
         return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
+
+
+
+@app.route('/api/logs', methods=['GET'])
+def get_logs():
+    """Get system logs"""
+    try:
+        log_path = os.path.join(Config.DATA_DIR, 'app.log')
+        
+        if not os.path.exists(log_path):
+            return jsonify({'success': True, 'logs': 'No logs found yet.'})
+            
+        with open(log_path, 'r', encoding='utf-8') as f:
+            # Read last 200 lines to avoid huge payloads
+            lines = f.readlines()
+            last_lines = lines[-200:]
+            content = ''.join(last_lines)
+            
+        return jsonify({
+            'success': True,
+            'logs': content
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/logs/clear', methods=['POST'])
+def clear_logs():
+    """Clear system logs"""
+    try:
+        log_path = os.path.join(Config.DATA_DIR, 'app.log')
+        if os.path.exists(log_path):
+            with open(log_path, 'w', encoding='utf-8') as f:
+                f.write(f"Logs cleared on {datetime.now()}\n")
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':

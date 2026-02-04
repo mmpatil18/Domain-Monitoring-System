@@ -33,7 +33,8 @@ class Config:
     DOMAIN_EXTENSIONS = [
         '.com', '.net', '.org', '.io', '.co', 
         '.ai', '.app', '.dev', '.store', '.biz', 
-        '.info', '.me', '.tech', '.xyz', '.online'
+        '.info', '.me', '.tech', '.xyz', '.online',
+        '.in'
     ]
     
     @staticmethod
@@ -66,4 +67,11 @@ class Config:
     def is_email_configured():
         """Check if email is properly configured"""
         config = Config.get_email_config()
-        return bool(config['smtp_username'] and config['smtp_password'] and config['smtp_to'])
+        # Strict check: Must have username, password, TO address, AND server
+        # Also ensure they are not just whitespace
+        has_server = bool(config['smtp_server'] and str(config['smtp_server']).strip())
+        has_user = bool(config['smtp_username'] and str(config['smtp_username']).strip())
+        has_pass = bool(config['smtp_password'] and str(config['smtp_password']).strip())
+        has_to = bool(config['smtp_to'] and str(config['smtp_to']).strip())
+        
+        return has_server and has_user and has_pass and has_to

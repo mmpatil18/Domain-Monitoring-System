@@ -372,8 +372,12 @@ function createWindow() {
             nodeIntegration: false
         },
         title: 'Domain Monitor',
-        show: false // Don't show until ready
+        show: false, // Don't show until ready
+        autoHideMenuBar: true // Hide the default menu bar
     });
+
+    // Remove the application menu completely for a cleaner look
+    mainWindow.setMenuBarVisibility(false);
 
     // Load the web interface
     mainWindow.loadURL(API_URL);

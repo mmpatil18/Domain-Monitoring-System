@@ -1,6 +1,6 @@
 {
   "name": "domain-monitor",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Domain Monitor System - Track domain availability and get notified",
   "main": "electron/main.js",
   "author": "Domain Monitor Team",
@@ -12,7 +12,7 @@
     "bundle-python": "node scripts/bundle-python.js",
     "clean": "node scripts/cleanup.js",
     "clear": "npm run clean",
-    "build:win": "npm run clean && electron-builder --win",
+    "build:win": "npm run clean && npm run bundle-python && electron-builder --win",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
