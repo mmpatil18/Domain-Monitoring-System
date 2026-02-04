@@ -81,6 +81,7 @@ test_endpoint.py
 test_dialog.js
 setup_github.bat
 push_to_github.bat
+cleanup_repo.bat
 Thumbs.db
 ehthumbs.db
 Desktop.ini
