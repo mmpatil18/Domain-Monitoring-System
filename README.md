@@ -9,10 +9,10 @@
 
 ## 📥 Download
 
-**Latest Release**: [v1.1.0](https://github.com/mmpatil18/Domain-Monitoring-System/releases/latest)
+**Latest Release**: [v1.1.1](https://github.com/mmpatil18/Domain.Monitoring.System-Setup-1.1.1.exe)
 
 ### Windows
-- **Installer**: [Domain.Monitoring.System-Setup-1.1.0.exe](https://github.com/mmpatil18/Domain-Monitoring-System/releases/download/v1.0.0/Domain.Monitoring.System-Setup-1.1.0.exe)
+- **Installer**: [Domain.Monitoring.System-Setup-1.1.1.exe](https://github.com/mmpatil18/Domain-Monitoring-System/releases/download/v1.1.1/Domain.Monitoring.System-Setup-1.1.1.exe)
 - **Requirements**: Windows 10/11 (64-bit), 4 GB RAM
 
 ---
