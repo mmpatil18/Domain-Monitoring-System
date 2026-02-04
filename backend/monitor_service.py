@@ -41,6 +41,7 @@ class MonitorService:
         
         logger.info(f"Scanning {len(keywords)} keyword(s)")
         total_domains_found = 0
+        lost_domains = []
         
         # Check each keyword
         for keyword_row in keywords:
@@ -54,14 +55,29 @@ class MonitorService:
             
             # Store results in database
             for domain, available in results:
-                self.db.add_domain(keyword_id, domain, 1 if available else 0)
+                # status_code: 1=New, 2=Regained, 3=Lost, 0=No Change
+                status_code = self.db.add_domain(keyword_id, domain, 1 if available else 0)
+                
                 if available:
                     total_domains_found += 1
+                
+                if status_code == 3: # Lost
+                    logger.info(f"⚠️  Domain LOST: {domain}")
+                    lost_domains.append({
+                        'domain': domain,
+                        'keyword': keyword
+                    })
+                elif status_code == 2:
+                    logger.info(f"♻️  Domain REGAINED: {domain}")
         
         logger.info(f"\nScan complete. Found {total_domains_found} available domain(s)")
         
-        # Send email notifications for new domains
+        # Send email notifications for new/regained domains
         self.send_notifications()
+        
+        # Send email notifications for lost domains
+        if lost_domains:
+            self.send_lost_notifications(lost_domains)
         
         # Record scan in history
         self.db.add_scan_record(len(keywords), total_domains_found, "Success")
@@ -93,6 +109,13 @@ class MonitorService:
             # Mark as notified
             self.db.mark_domains_notified(domain_ids)
             logger.info("Domains marked as notified")
+
+    def send_lost_notifications(self, lost_domains):
+        """Send email notifications for lost domains"""
+        logger.info(f"Preparing to notify about {len(lost_domains)} LOST domain(s)")
+        
+        if self.notifier.send_lost_domain_alert(lost_domains):
+            logger.info("Lost domain notification sent")
     
     def run_continuous(self):
         """Run the monitor service continuously"""

@@ -19,9 +19,11 @@ if getattr(sys, 'frozen', False):
     template_folder = os.path.join(base_dir, 'frontend')
     static_folder = os.path.join(base_dir, 'frontend')
 else:
-    # Running in normal Python environment
-    template_folder = '../frontend'
-    static_folder = '../frontend'
+    # Running in normal Python environment - use absolute path
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(backend_dir)
+    template_folder = os.path.join(project_root, 'frontend')
+    static_folder = os.path.join(project_root, 'frontend')
 
 app = Flask(__name__, static_folder=static_folder, template_folder=template_folder, static_url_path='')
 db = Database()
@@ -267,6 +269,44 @@ def clear_data():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# User preference endpoints (must come BEFORE generic /api/settings)
+@app.route('/api/settings/<key>', methods=['GET'])
+def get_user_setting(key):
+    """Get a single setting value"""
+    try:
+        value = db.get_setting(key)
+        return jsonify({
+            'success': True,
+            'key': key,
+            'value': value
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/settings/save', methods=['POST'])
+def save_user_setting():
+    """Save a single setting value"""
+    try:
+        data = request.get_json()
+        key = data.get('key')
+        value = data.get('value')
+        
+        if not key:
+            return jsonify({
+                'success': False,
+                'error': 'Missing key'
+            }), 400
+        
+        db.save_setting(key, value)
+        return jsonify({
+            'success': True,
+            'key': key,
+            'value': value
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Email settings endpoints
 @app.route('/api/settings', methods=['GET'])
 def get_settings():
     """Get current email settings"""

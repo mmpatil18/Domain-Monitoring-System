@@ -1,7 +1,11 @@
 import sqlite3
 import os
+import logging
 from datetime import datetime
 from config import Config
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self):
@@ -104,27 +108,79 @@ class Database:
         return keywords
     
     def add_domain(self, keyword_id, domain, available):
-        """Add a discovered domain"""
+        """
+        Add or update a discovered domain.
+        Returns status code:
+        0: No change / irrelevant change
+        1: New available domain
+        2: Regained availability (Taken -> Available)
+        3: Lost availability (Available -> Taken)
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
+        
+        status_code = 0
+        
         try:
-            cursor.execute('''
-                INSERT INTO domains (keyword_id, domain, available, checked_date)
-                VALUES (?, ?, ?, ?)
-            ''', (keyword_id, domain, available, datetime.now()))
+            # Check if domain exists first
+            cursor.execute('SELECT id, available, notified FROM domains WHERE domain = ?', (domain,))
+            existing = cursor.fetchone()
+            
+            if existing:
+                domain_id = existing['id']
+                was_available = existing['available']
+                was_notified = existing['notified']
+                
+                # Logic for status changes
+                if available == 1 and was_available == 0:
+                    # REGAINED: Taken -> Available
+                    # We MUST reset notified to 0 so the user gets an alert
+                    cursor.execute('''
+                        UPDATE domains 
+                        SET available = 1, checked_date = ?, notified = 0 
+                        WHERE id = ?
+                    ''', (datetime.now(), domain_id))
+                    status_code = 2 # Regained
+                    
+                elif available == 0 and was_available == 1:
+                    # LOST: Available -> Taken
+                    cursor.execute('''
+                        UPDATE domains 
+                        SET available = 0, checked_date = ? 
+                        WHERE id = ?
+                    ''', (datetime.now(), domain_id))
+                    status_code = 3 # Lost
+                    
+                else:
+                    # No significant status change (e.g. Taken->Taken or Available->Available)
+                    # Just update checked_date
+                    cursor.execute('''
+                        UPDATE domains SET checked_date = ? WHERE id = ?
+                    ''', (datetime.now(), domain_id))
+                    status_code = 0
+                    
+            else:
+                # NEW Domain
+                cursor.execute('''
+                    INSERT INTO domains (keyword_id, domain, available, checked_date, notified)
+                    VALUES (?, ?, ?, ?, 0)
+                ''', (keyword_id, domain, available, datetime.now()))
+                
+                if available:
+                    status_code = 1 # New Available
+                else:
+                    status_code = 0 # New Taken (not interesting usually)
+            
             conn.commit()
-            domain_id = cursor.lastrowid
             conn.close()
-            return domain_id
-        except sqlite3.IntegrityError:
-            # Domain already exists, update it
-            cursor.execute('''
-                UPDATE domains SET available = ?, checked_date = ?
-                WHERE domain = ?
-            ''', (available, datetime.now(), domain))
-            conn.commit()
-            conn.close()
-            return None
+            return status_code
+            
+        except sqlite3.Error as e:
+            # Fallback for safety
+            logger.error(f"Database error in add_domain: {e}")
+            if conn:
+                conn.close()
+            return 0
     
     def get_available_domains(self, limit=100):
         """Get available domains"""

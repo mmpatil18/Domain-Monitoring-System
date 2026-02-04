@@ -13,10 +13,94 @@ let tray = null;
 let pythonApiProcess = null;
 let pythonMonitorProcess = null;
 let serverReady = false;
+let monitoringPaused = false;
 
 const isDev = process.argv.includes('--dev') || !app.isPackaged;
+console.log('--------------------------------------------------');
+console.log('DEBUG: isDev calculation:');
+console.log('  process.argv:', process.argv);
+console.log('  includes --dev:', process.argv.includes('--dev'));
+console.log('  !app.isPackaged:', !app.isPackaged);
+console.log('  RESULT isDev:', isDev);
+console.log('--------------------------------------------------');
 const API_PORT = 5000;
-const API_URL = `http://localhost:${API_PORT}`;
+const API_URL = `http://127.0.0.1:${API_PORT}`;
+
+/**
+ * Get preferences file path
+ */
+function getPreferencesPath() {
+    const userDataPath = app.getPath('userData');
+    return path.join(userDataPath, 'preferences.json');
+}
+
+/**
+ * Get user preference from local file
+ */
+async function getUserPreference() {
+    try {
+        const prefsPath = getPreferencesPath();
+
+        if (!fs.existsSync(prefsPath)) {
+            return null; // No preference file = first time
+        }
+
+        const data = fs.readFileSync(prefsPath, 'utf8');
+        const prefs = JSON.parse(data);
+        return prefs.minimize_on_close; // "true", "false", or undefined
+    } catch (error) {
+        console.error('Error reading preference:', error.message);
+        return null;
+    }
+}
+
+/**
+ * Save user preference to local file
+ */
+async function saveUserPreference(minimize) {
+    try {
+        const prefsPath = getPreferencesPath();
+        const prefs = {
+            minimize_on_close: minimize ? 'true' : 'false',
+            updated_at: new Date().toISOString()
+        };
+
+        fs.writeFileSync(prefsPath, JSON.stringify(prefs, null, 2), 'utf8');
+        console.log('Preference saved to:', prefsPath);
+        console.log('Value:', minimize ? 'minimize' : 'quit');
+    } catch (error) {
+        console.error('Error saving preference:', error.message);
+    }
+}
+
+/**
+ * Show dialog asking user about background running
+ */
+function showCloseDialog() {
+    const choice = dialog.showMessageBoxSync(mainWindow, {
+        type: 'question',
+        buttons: ['Minimize to Tray', 'Quit Completely'],
+        defaultId: 0,
+        title: 'Keep Domain Monitor Running?',
+        message: 'Do you want Domain Monitor to keep running in the background?',
+        detail: 'The app will continue monitoring domains even when the window is closed.\n\n✓ Icon stays in system tray\n✓ Monitoring continues\n✓ Email alerts active',
+        checkboxLabel: "Remember my choice",
+        checkboxChecked: false
+    });
+
+    console.log('=== DIALOG DEBUG ===');
+    console.log('Dialog result type:', typeof choice);
+    console.log('Dialog result value:', choice);
+    console.log('Dialog result JSON:', JSON.stringify(choice));
+    console.log('===================');
+
+    // showMessageBoxSync returns just the button index (number)
+    // 0 = Minimize to Tray, 1 = Quit Completely
+    return {
+        minimize: choice === 0,
+        remember: false  // Checkbox not supported in sync version
+    };
+}
 
 /**
  * Get the executable path for a specific service
@@ -173,7 +257,7 @@ function startPythonMonitor() {
 
     pythonMonitorProcess = spawn(execPath, args, {
         cwd: cwd,
-        env: { ...process.env, PYTHONUNBUFFERED: '1' }
+        env: { ...(process.env || {}), PYTHONUNBUFFERED: '1' }
     });
 
     pythonMonitorProcess.stdout.on('data', (data) => {
@@ -187,6 +271,89 @@ function startPythonMonitor() {
     pythonMonitorProcess.on('close', (code) => {
         console.log(`Python monitor process exited with code ${code}`);
     });
+}
+
+/**
+ * Pause monitoring service
+ */
+function pauseMonitoring() {
+    if (pythonMonitorProcess) {
+        pythonMonitorProcess.kill();
+        pythonMonitorProcess = null;
+        monitoringPaused = true;
+        updateTrayMenu();
+        console.log('Monitoring paused');
+    }
+}
+
+/**
+ * Resume monitoring service
+ */
+function resumeMonitoring() {
+    if (!pythonMonitorProcess) {
+        startPythonMonitor();
+        monitoringPaused = false;
+        updateTrayMenu();
+        console.log('Monitoring resumed');
+    }
+}
+
+/**
+ * Update tray menu to reflect current state
+ */
+function updateTrayMenu() {
+    if (!tray) return;
+
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: 'Show Domain Monitor',
+            click: () => {
+                if (mainWindow) {
+                    mainWindow.show();
+                }
+            }
+        },
+        {
+            label: 'Open in Browser',
+            click: () => {
+                require('electron').shell.openExternal(API_URL);
+            }
+        },
+        { type: 'separator' },
+        {
+            label: monitoringPaused ? '▶ Resume Monitoring' : '⏸ Pause Monitoring',
+            click: () => {
+                if (monitoringPaused) {
+                    resumeMonitoring();
+                } else {
+                    pauseMonitoring();
+                }
+            }
+        },
+        {
+            label: 'Restart Monitoring',
+            click: () => {
+                if (pythonMonitorProcess) {
+                    pythonMonitorProcess.kill();
+                }
+                setTimeout(() => {
+                    startPythonMonitor();
+                    monitoringPaused = false;
+                    updateTrayMenu();
+                }, 1000);
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Quit',
+            click: () => {
+                app.isQuitting = true;
+                app.quit();
+            }
+        }
+    ]);
+
+    tray.setContextMenu(contextMenu);
 }
 
 /**
@@ -217,10 +384,50 @@ function createWindow() {
     });
 
     // Handle window close
-    mainWindow.on('close', (event) => {
-        if (!app.isQuitting) {
-            event.preventDefault();
+    mainWindow.on('close', async (event) => {
+        if (app.isQuitting) {
+            return; // Allow quit
+        }
+
+        event.preventDefault();
+
+        // Get saved preference
+        const preference = await getUserPreference();
+
+        if (preference === null || preference === undefined || preference === 'null') {
+            // First time or no preference - show dialog
+            const choice = showCloseDialog();
+
+            // Save if user wants to remember (non-blocking)
+            if (choice.remember) {
+                saveUserPreference(choice.minimize).catch(err => {
+                    console.warn('Could not save preference:', err.message);
+                });
+            }
+
+            if (choice.minimize) {
+                console.log('Minimizing to tray...');
+                console.log('  Tray exists before hide:', !!tray);
+                console.log('  Window will hide now');
+                mainWindow.hide();
+                console.log('  Window hidden successfully');
+                console.log('  Tray still exists:', !!tray);
+            } else {
+                console.log('Quitting app...');
+                app.isQuitting = true;
+                app.quit();
+            }
+        } else if (preference === 'true') {
+            // User wants to minimize
+            console.log('Using saved preference: minimize to tray');
+            console.log('  About to hide window');
             mainWindow.hide();
+            console.log('  Window hidden, returning from close handler');
+        } else {
+            // User wants to quit
+            console.log('Using saved preference: quit');
+            app.isQuitting = true;
+            app.quit();
         }
     });
 
@@ -255,68 +462,59 @@ function getIconPath() {
  * Create system tray icon
  */
 function createTray() {
-    // Use the correctly resolved icon path
     const trayIconPath = getIconPath();
 
+    // Check if icon exists
+    if (!fs.existsSync(trayIconPath)) {
+        console.error('Tray icon not found:', trayIconPath);
+        return;
+    }
+
     tray = new Tray(trayIconPath);
-
-    const contextMenu = Menu.buildFromTemplate([
-        {
-            label: 'Show Domain Monitor',
-            click: () => {
-                if (mainWindow) {
-                    mainWindow.show();
-                }
-            }
-        },
-        {
-            label: 'Open in Browser',
-            click: () => {
-                require('electron').shell.openExternal(API_URL);
-            }
-        },
-        { type: 'separator' },
-        {
-            label: 'Restart Monitoring',
-            click: () => {
-                if (pythonMonitorProcess) {
-                    pythonMonitorProcess.kill();
-                }
-                setTimeout(() => startPythonMonitor(), 1000);
-            }
-        },
-        { type: 'separator' },
-        {
-            label: 'Quit',
-            click: () => {
-                app.isQuitting = true;
-                app.quit();
-            }
-        }
-    ]);
-
     tray.setToolTip('Domain Monitor');
-    tray.setContextMenu(contextMenu);
 
-    // Double click to show window
+    // Initial menu creation
+    updateTrayMenu();
+
+    // Double-click to show window
     tray.on('double-click', () => {
-        mainWindow.show();
+        if (mainWindow) {
+            mainWindow.show();
+        }
     });
+
+    console.log('System tray created');
 }
 
 /**
- * Stop all Python processes
+ * Stop all Python processes forcefully
  */
 function stopPythonProcesses() {
     console.log('Stopping Python processes...');
 
+    const killProcess = (proc) => {
+        if (!proc) return;
+        try {
+            if (process.platform === 'win32') {
+                // Windows: Kill process tree forcefully
+                // /F = Force, /T = Tree (kill children), /PID = Process ID
+                spawn('taskkill', ['/pid', proc.pid, '/f', '/t']);
+            } else {
+                proc.kill('SIGKILL');
+            }
+        } catch (e) {
+            console.error('Error killing process:', e);
+            proc.kill(); // Fallback
+        }
+    };
+
     if (pythonApiProcess) {
-        pythonApiProcess.kill();
+        killProcess(pythonApiProcess);
         pythonApiProcess = null;
     }
 
     if (pythonMonitorProcess) {
-        pythonMonitorProcess.kill();
+        killProcess(pythonMonitorProcess);
         pythonMonitorProcess = null;
     }
 }
@@ -358,9 +556,17 @@ async function initialize() {
 app.whenReady().then(initialize);
 
 app.on('window-all-closed', () => {
-    // On macOS, keep app running even when windows are closed
-    if (process.platform !== 'darwin') {
+    console.log('🔔 window-all-closed event fired');
+    console.log('  Tray exists:', !!tray);
+    console.log('  app.isQuitting:', app.isQuitting);
+
+    // Don't quit if tray icon exists (running in background)
+    // Only quit if user explicitly chose to quit or no tray
+    if (!tray || app.isQuitting) {
+        console.log('  → Quitting app');
         app.quit();
+    } else {
+        console.log('  → Keeping app running in background');
     }
 });
 
@@ -372,13 +578,27 @@ app.on('activate', () => {
     }
 });
 
-app.on('before-quit', () => {
+app.on('before-quit', (event) => {
+    console.log('⚠️ before-quit event fired');
+    console.log('  app.isQuitting:', app.isQuitting);
+    console.log('  Tray exists:', !!tray);
     app.isQuitting = true;
     stopPythonProcesses();
 });
 
-app.on('will-quit', () => {
+app.on('will-quit', (event) => {
+    console.log('⚠️ will-quit event fired');
     stopPythonProcesses();
+
+    // Final safety net: Kill any lingering processes by name
+    if (process.platform === 'win32') {
+        spawn('taskkill', ['/IM', 'domain-monitor-api.exe', '/F']);
+        spawn('taskkill', ['/IM', 'domain-monitor.exe', '/F']);
+    }
+});
+
+app.on('quit', () => {
+    console.log('⚠️ quit event fired - app is quitting');
 });
 
 // IPC handlers

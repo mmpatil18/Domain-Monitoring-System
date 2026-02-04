@@ -54,12 +54,41 @@
 
 3. **Start Monitoring**:
    - Click "Start Scan"
-   - Monitor runs in background
+   - Monitor runs in background automatically
+
+### Background Monitoring
+
+**The monitoring service runs 24/7 in the background:**
+- ✅ Checks domains every **30 minutes** by default
+- ✅ Runs even when window is minimized or closed
+- ✅ Shows icon in system tray (bottom-right on Windows)
+- ✅ Sends email alerts for newly available domains
+
+**How to know it's running:**
+- System tray icon visible (hover shows "Domain Monitor")
+- Scan History tab shows recent scans with timestamps
+- Dashboard shows "Last Scan" time
+
+**Customize scan frequency:**
+1. Close application
+2. Edit `.env` file in: `%APPDATA%\domain-monitor\`
+3. Change `MONITOR_INTERVAL` (in seconds):
+   - 15 minutes: `1800`
+   - 30 minutes: `1800` (default)
+   - 1 hour: `3600`
+   - 6 hours: `21600`
+4. Restart application
+
+See [MONITORING_GUIDE.md](MONITORING_GUIDE.md) for detailed information.
 
 ---
 
 ## 📖 Documentation
 
+### User Guides
+- **[Monitoring Guide](MONITORING_GUIDE.md)** - How background monitoring works and customization
+
+### Developer Guides
 - **[Build Guide](BUILD_GUIDE.md)** - How to build from source
 - **[Distribution Guide](DISTRIBUTION_GUIDE.md)** - How to distribute the application
 - **[GitHub Release Guide](GITHUB_RELEASE_GUIDE.md)** - How to publish releases

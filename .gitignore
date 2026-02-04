@@ -1,7 +1,8 @@
-# Electron
+# Electron & Node
 node_modules/
 dist-electron/
 python-dist/
+package-lock.json
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -15,7 +16,11 @@ dist/
 *.rpm
 *.dmg
 *.exe
-!*.spec
+*.blockmap
+*.yml
+!.github/workflows/*.yml
+builder-*.yml
+builder-*.yaml
 
 # Python
 venv/
@@ -26,14 +31,24 @@ __pycache__/
 .Python
 env/
 ENV/
+*.pyc
 
-# Database
-data/*.db
-data/*.db-journal
+# Database & Data
+data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
 
-# Environment
+# Environment & Config
 .env
 !.env.example
+
+# Logs
+*.log
+bundle_debug.log
+build_log.txt
+api_debug.log
 
 # IDE
 .vscode/
@@ -47,3 +62,13 @@ data/*.db-journal
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+$RECYCLE.BIN/
+
+# Test files (optional - uncomment if you don't want to share test scripts)
+# test_*.bat
+# test_*.py
+
+# Development scripts (optional - uncomment if you want to exclude)
+# start_app.bat
+# start_backend.bat
+# start_backend_background.bat
